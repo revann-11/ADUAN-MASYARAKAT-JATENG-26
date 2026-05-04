@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Aduan Masyarakat Jawa Tengah</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+*{box-sizing:border-box;}
+
+body{
+    margin:0;
+    font-family:Arial;
+    color:white;
+
+    /* BACKGROUND LOGO */
+    background:#1e1e1e url("logo.png") no-repeat center;
+    background-size:300px;
+}
+
+/* OVERLAY */
+body::before{
+    content:"";
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.7);
+    z-index:0;
+}
+
+/* NAVBAR */
+.navbar{
+    position:relative;
+    z-index:1;
+    display:flex;
+    justify-content:space-between;
+    padding:15px;
+    background:rgba(0,0,0,0.8);
+}
+
+/* CONTAINER */
+.container{
+    position:relative;
+    z-index:1;
+    min-height:100vh;
+
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* FORM BOX */
+.form-box{
+    background:rgba(0,0,0,0.8);
+    padding:20px;
+    width:350px;
+    border-radius:15px;
+    text-align:center;
+}
+
+/* INPUT */
+input,select,textarea{
+    width:100%;
+    margin:6px 0;
+    padding:10px;
+    border-radius:8px;
+    border:none;
+}
+
+button{
+    width:100%;
+    padding:10px;
+    background:orange;
+    border:none;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+button:hover{
+    background:darkorange;
+}
+
+/* PREVIEW */
+#preview{
+    width:100%;
+    margin-top:10px;
+    display:none;
+    border-radius:10px;
+}
+
+/* SUCCESS */
+#successMsg{
+    display:none;
+}
+</style>
+</head>
+
+<body>
+
+<div class="navbar">
+<b>Aduan Jateng</b>
+<a href="data.html" style="color:white;">Lihat Data</a>
+</div>
+
+<div class="container">
+<div class="form-box">
+
+<h2>FORM ADUAN</h2>
+
+<form id="formAduan">
+
+<input type="text" id="nama" placeholder="Nama" required>
+
+<select id="kabupaten" required>
+<option>Loading...</option>
+</select>
+
+<select id="kecamatan" required>
+<option>Pilih Kecamatan</option>
+</select>
+
+<input type="text" id="alamat" placeholder="Alamat lengkap" required>
+
+<textarea id="masalah" placeholder="Masalah yang diadukan" required></textarea>
+
+<input type="file" id="foto" accept="image/*">
+
+<img id="preview">
+
+<button type="submit">Kirim Aduan</button>
+
+<p id="loading" style="display:none;">⏳ Mengirim...</p>
+
+</form>
+
+<div id="successMsg">
+<h3 style="color:lightgreen;">✅ Berhasil</h3>
+<p>Terimakasih, aduan anda sudah kami terima 🙏</p>
+<a href="data.html" style="color:orange;">Lihat Data</a>
+</div>
+
+</div>
+</div>
+
+<script>
+// LOAD KABUPATEN
+fetch("https://www.emsifa.com/api-wilayah-indonesia/api/regencies/33.json")
+.then(res=>res.json())
+.then(data=>{
+    let kab=document.getElementById("kabupaten");
+    kab.innerHTML="<option value=''>Pilih Kabupaten</option>";
+    data.sort((a,b)=>a.name.localeCompare(b.name));
+    data.forEach(k=>{
+        kab.innerHTML+=`<option value="${k.id}">${k.name}</option>`;
+    });
+});
+
+// LOAD KECAMATAN
+document.getElementById("kabupaten").addEventListener("change",function(){
+    let id=this.value;
+    let kec=document.getElementById("kecamatan");
+
+    kec.innerHTML="<option>Loading...</option>";
+
+    fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${id}.json`)
+    .then(res=>res.json())
+    .then(data=>{
+        kec.innerHTML="<option>Pilih Kecamatan</option>";
+        data.forEach(d=>{
+            kec.innerHTML+=`<option>${d.name}</option>`;
+        });
+    });
+});
+
+// PREVIEW FOTO
+document.getElementById("foto").addEventListener("change",function(e){
+    let file=e.target.files[0];
+    if(file){
+        let reader=new FileReader();
+        reader.onload=function(){
+            let preview=document.getElementById("preview");
+            preview.src=reader.result;
+            preview.style.display="block";
+        }
+        reader.readAsDataURL(file);
+    }
+});
+
+// SUBMIT + DATABASE
+document.getElementById("formAduan").addEventListener("submit",function(e){
+    e.preventDefault();
+
+    document.getElementById("loading").style.display="block";
+
+    let data={
+        nama:document.getElementById("nama").value,
+        kabupaten:document.getElementById("kabupaten").selectedOptions[0].text,
+        kecamatan:document.getElementById("kecamatan").value,
+        alamat:document.getElementById("alamat").value,
+        masalah:document.getElementById("masalah").value,
+        foto:document.getElementById("preview").src,
+        waktu:new Date().toLocaleString()
+    };
+
+    let semua=JSON.parse(localStorage.getItem("aduan"))||[];
+    semua.push(data);
+    localStorage.setItem("aduan",JSON.stringify(semua));
+
+    setTimeout(()=>{
+        document.getElementById("formAduan").style.display="none";
+        document.getElementById("loading").style.display="none";
+        document.getElementById("successMsg").style.display="block";
+    },1000);
+});
+</script>
+
+</body>
+</html>
