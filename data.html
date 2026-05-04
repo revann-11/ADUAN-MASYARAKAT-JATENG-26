@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Data Aduan</title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body{
+    font-family:Arial;
+    background:#111;
+    color:white;
+    padding:20px;
+}
+
+.card{
+    background:#222;
+    padding:10px;
+    margin:10px 0;
+    border-radius:10px;
+}
+
+img{
+    width:100%;
+    max-width:200px;
+    margin-top:5px;
+}
+
+button{
+    background:red;
+    color:white;
+    border:none;
+    padding:5px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📊 Data Aduan</h2>
+<a href="index.html" style="color:orange;">← Kembali</a>
+
+<div id="list"></div>
+
+<script>
+let data=JSON.parse(localStorage.getItem("aduan"))||[];
+let html="";
+
+data.forEach((d,i)=>{
+html+=`
+<div class="card">
+<b>${d.nama}</b><br>
+${d.kabupaten} - ${d.kecamatan}<br>
+${d.alamat}<br>
+${d.masalah}<br>
+${d.foto ? `<img src="${d.foto}">` : ""}<br>
+<small>${d.waktu}</small><br>
+<button onclick="hapus(${i})">Hapus</button>
+</div>
+`;
+});
+
+document.getElementById("list").innerHTML=html;
+
+// HAPUS DATA
+function hapus(i){
+    let data=JSON.parse(localStorage.getItem("aduan"));
+    data.splice(i,1);
+    localStorage.setItem("aduan",JSON.stringify(data));
+    location.reload();
+}
+</script>
+
+</body>
+</html>
