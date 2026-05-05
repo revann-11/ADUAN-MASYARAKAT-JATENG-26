@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Aduan Masyarakat Jawa Tengah</title>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            color: white;
+        }
+
+        header {
+            text-align: center;
+            background: #111;
+            padding: 15px;
+        }
+
+        .logo {
+            width: 90px;
+        }
+
+        .logo-bg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 280px;
+            transform: translate(-50%, -50%);
+            opacity: 0.08;
+            z-index: -1;
+        }
+
+        .container {
+            display: none;
+            justify-content: center;
+            align-items: center;
+            height: calc(100vh - 120px);
+        }
+
+        .form-box {
+            background: rgba(0,0,0,0.7);
+            padding: 25px;
+            width: 350px;
+            border-radius: 15px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            margin: 6px 0;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background: orange;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: darkorange;
+        }
+
+        #preview {
+            width: 100%;
+            margin-top: 10px;
+            display: none;
+            border-radius: 10px;
+        }
+
+        #authBox {
+            text-align: center;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <img src="logo.png" class="logo">
+    <h1>Aduan Masyarakat Jawa Tengah</h1>
+</header>
+
+<img src="logo.png" class="logo-bg">
+
+<!-- LOGIN -->
+<div id="authBox">
+    <h2>Login / Daftar</h2>
+    <input type="email" id="email" placeholder="Email"><br><br>
+    <input type="password" id="password" placeholder="Password"><br><br>
+    <button onclick="register()">Daftar</button>
+    <button onclick="login()">Login</button>
+</div>
+
+<!-- FORM -->
+<div class="container">
+<div class="form-box">
+
+<h2>FORM ADUAN</h2>
+
+<form id="formAduan">
+
+<input type="text" id="nama" placeholder="Nama" required>
+
+<select id="kabupaten" required>
+<option>Loading...</option>
+</select>
+
+<select id="kecamatan" required>
+<option>Pilih Kecamatan</option>
+</select>
+
+<input type="text" id="alamat" placeholder="Alamat" required>
+
+<textarea id="masalah" placeholder="Masalah" required></textarea>
+
+<input type="file" id="foto" accept="image/*">
+<img id="preview">
+
+<button type="submit">Kirim Aduan</button>
+
+</form>
+
+<div id="successMsg" style="display:none; text-align:center;">
+<h3 style="color:lightgreen;">✅ Berhasil</h3>
+<p>Aduan berhasil dikirim</p>
+</div>
+
+</div>
+</div>
+
+<!-- FIREBASE + SCRIPT -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+
+// 🔥 GANTI DENGAN PUNYA KAMU
+const firebaseConfig = {
+  apiKey: "ISI_API_KEY",
+  authDomain: "ISI_DOMAIN",
+  projectId: "ISI_PROJECT_ID"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+
+// REGISTER
+window.register = function() {
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
+
+    createUserWithEmailAndPassword(auth, email, password)
+    .then(() => alert("Berhasil daftar"))
+    .catch(err => alert(err.message));
+}
+
+// LOGIN
+window.login = function() {
+    let email = document.getElementById("email").value;
+    let password = document.getElementById("password").value;
+
+    signInWithEmailAndPassword(auth, email, password)
+    .then(() => alert("Login berhasil"))
+    .catch(err => alert(err.message));
+}
+
+// CEK LOGIN
+onAuthStateChanged(auth, (user) => {
+    if (user) {
+        document.getElementById("authBox").style.display = "none";
+        document.querySelector(".container").style.display = "flex";
+    } else {
+        document.getElementById("authBox").style.display = "block";
+        document.querySelector(".container").style.display = "none";
+    }
+});
+
+// ================== API WILAYAH ==================
+fetch("https://www.emsifa.com/api-wilayah-indonesia/api/regencies/33.json")
+.then(res => res.json())
+.then(data => {
+    data.sort((a, b) => a.name.localeCompare(b.name));
+    let kab = document.getElementById("kabupaten");
+    kab.innerHTML = "<option>Pilih Kabupaten</option>";
+    data.forEach(k => {
+        let opt = document.createElement("option");
+        opt.value = k.id;
+        opt.textContent = k.name;
+        kab.appendChild(opt);
+    });
+});
+
+document.getElementById("kabupaten").addEventListener("change", function() {
+    let id = this.value;
+    let kec = document.getElementById("kecamatan");
+    kec.innerHTML = "<option>Loading...</option>";
+
+    fetch(`https://www.emsifa.com/api-wilayah-indonesia/api/districts/${id}.json`)
+    .then(res => res.json())
+    .then(data => {
+        data.sort((a, b) => a.name.localeCompare(b.name));
+        kec.innerHTML = "<option>Pilih Kecamatan</option>";
+        data.forEach(d => {
+            let opt = document.createElement("option");
+            opt.textContent = d.name;
+            kec.appendChild(opt);
+        });
+    });
+});
+
+// PREVIEW FOTO
+document.getElementById("foto").addEventListener("change", function(e){
+    let file = e.target.files[0];
+    let preview = document.getElementById("preview");
+    if(file){
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+    }
+});
+
+// SUBMIT
+document.getElementById("formAduan").addEventListener("submit", function(e){
+    e.preventDefault();
+    document.getElementById("formAduan").style.display="none";
+    document.getElementById("successMsg").style.display="block";
+});
+
+</script>
+
+</body>
+</html>
