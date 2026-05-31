@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Aduan Masyarakat Jawa Tengah</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <img src="logo.png" class="logo">
+    <h1>Aduan Masyarakat Jawa Tengah</h1>
+</header>
+
+<img src="logo.png" class="logo-bg">
+
+<div id="authBox">
+    <h2>Login / Daftar</h2>
+    <input type="email" id="email" placeholder="Email"><br><br>
+    <input type="password" id="password" placeholder="Password"><br><br>
+    <button id="btnDaftar">Daftar</button>
+    <button id="btnLogin">Login</button>
+</div>
+
+<div class="container">
+    <div class="form-box">
+        <h2>FORM ADUAN</h2>
+        <form id="formAduan">
+            <input type="text" id="nama" placeholder="Nama" required>
+            
+            <select id="kabupaten" required>
+                <option>Loading...</option>
+            </select>
+
+            <select id="kecamatan" required>
+                <option>Pilih Kecamatan</option>
+            </select>
+
+            <input type="text" id="alamat" placeholder="Alamat" required>
+            <textarea id="masalah" placeholder="Masalah" required></textarea>
+            <input type="datetime-local" id="waktu" required>
+            <input type="file" id="foto" accept="image/*">
+            <img id="preview">
+
+            <button type="submit">Kirim Aduan</button>
+        </form>
+
+        <div id="successMsg" style="display:none; text-align:center;">
+            <h3 style="color:lightgreen;">✅ Berhasil</h3>
+            <p>Aduan berhasil dikirim</p>
+        </div>
+    </div>
+</div>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
